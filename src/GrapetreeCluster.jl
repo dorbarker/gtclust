@@ -141,7 +141,7 @@ end
 function collapse_internal_node(graph::MetaGraph, vertex::Int)::MetaGraph
 
     g = deepcopy(graph)
-
+    #g = graph
     # get the neighbours
     neighbours = neighbors(g, vertex)
 
@@ -173,7 +173,7 @@ end
 
 function cluster_graph(g::MetaGraph)::Dict{Number, Dict{String, Int}}
 
-    heights = map(e -> get_prop(graph, e, :weight), edges(g)) |> sort |> unique
+    heights = map(e -> get_prop(g, e, :weight), edges(g)) |> sort |> unique
 
     threshold_clusters =
         Dict(height => cluster_by_delink(g, height) for height in heights)
@@ -231,12 +231,12 @@ function convert_indices_to_names(
     clusters::Array{Array{Int,1},1},
 )::Array{Array{String,1},1}
 
-    [convert_indices_to_names(g, clusters) for cluster in clusters]
+    [convert_cluster_indices_to_names(graph, clusters) for cluster in clusters]
 
 end
 
 
-function convert_indices_to_names(
+function convert_cluster_indices_to_names(
     graph::MetaGraph,
     clusters::Array{Int,1},
 )::Array{String,1}
