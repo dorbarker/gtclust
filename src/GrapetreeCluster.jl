@@ -49,8 +49,10 @@ function process(args)
 
     collapsed_graph = collapse_internal_nodes(graph)
 
-    strains = map(node -> get_prop(collapsed_graph, node, :name),
-                  vertices(collapsed_graph))
+    strains = map(
+        node -> get_prop(collapsed_graph, node, :name),
+        vertices(collapsed_graph),
+    )
 
     clusters = cluster_graph(collapsed_graph)
 
@@ -179,12 +181,13 @@ function collapse_internal_node(graph::MetaGraph, vertex::Int)::MetaGraph
 end
 
 
-function cluster_graph(g::MetaGraph)::Dict{Number, Dict{String, Int}}
+function cluster_graph(g::MetaGraph)::Dict{Number,Dict{String,Int}}
 
     heights = map(e -> get_prop(g, e, :weight), edges(g)) |> sort |> unique
 
-    threshold_clusters =
-        Dict(height => cluster_by_delink(g, height) for height in heights)
+    threshold_clusters = Dict(
+        height => cluster_by_delink(g, height) for height in [0, heights...]
+    )
 
     threshold_strain_cluster = Dict(
         height => associate_strain_with_cluster(clusters) for
@@ -206,7 +209,7 @@ function cluster_by_delink(original_graph::MetaGraph, max_distance::Number)
     end
 
     clusters = connected_components(g)
-    println(clusters, typeof(clusters))
+
     named_clusters = convert_indices_to_names(g, clusters)
 
     named_clusters
@@ -214,16 +217,16 @@ function cluster_by_delink(original_graph::MetaGraph, max_distance::Number)
 end
 
 
-function associate_strain_with_cluster(clusters::Array{Array{String,1},1})::Dict{String, Int}
+function associate_strain_with_cluster(
+    clusters::Array{Array{String,1},1},
+)::Dict{String,Int}
 
     sorted_by_size = sort(clusters, by = length, rev = true)
 
-    strain_cluster = Dict{String, Int}()
+    strain_cluster = Dict{String,Int}()
 
     for (cluster_num, members) in enumerate(sorted_by_size)
-
         for member in members
-
             strain_cluster[member] = cluster_num
 
         end
@@ -262,17 +265,21 @@ function build_cluster_table(
     column_order = clusters |> keys |> collect |> sort
 
     columns = Dict(
-        threshold => cluster_column(threshold, strains, clusters) for
-        threshold in keys(clusters)
+        string(threshold) => cluster_column(threshold, strains, clusters)
+        for threshold in keys(clusters)
     )
 
-    columns[:isolate] = strains
+    df = DataFrame(columns)
+    begin
+        df[!, "isolate"] = strains
+        df
+    end
 
-    select(DataFrame(columns), [:isolate, column_order...])
+    select(df, ["isolate", map(string, column_order)...])
 
 end
 
-function cluster_column(threshold, strain_order, clusters)::Array{Int, 1}
+function cluster_column(threshold, strain_order, clusters)::Array{Int,1}
 
     clusters_at_threshold = clusters[threshold]
 
