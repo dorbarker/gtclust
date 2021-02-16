@@ -132,6 +132,14 @@ function collapse_internal_nodes(g::MetaGraph)
         return collapse_internal_nodes(trimmed_graph)
 
     catch BoundsError
+
+        # clean up some self-self edges that occur
+        for e in edges(g)
+            if e.src == e.dst
+                rem_edge!(g, e)
+            end
+        end
+
         return g
 
     end
@@ -198,7 +206,7 @@ function cluster_by_delink(original_graph::MetaGraph, max_distance::Number)
     end
 
     clusters = connected_components(g)
-
+    println(clusters, typeof(clusters))
     named_clusters = convert_indices_to_names(g, clusters)
 
     named_clusters
@@ -231,14 +239,14 @@ function convert_indices_to_names(
     clusters::Array{Array{Int,1},1},
 )::Array{Array{String,1},1}
 
-    [convert_cluster_indices_to_names(graph, clusters) for cluster in clusters]
+    [convert_indices_to_names(graph, cluster) for cluster in clusters]
 
 end
 
 
-function convert_cluster_indices_to_names(
+function convert_indices_to_names(
     graph::MetaGraph,
-    clusters::Array{Int,1},
+    cluster::Array{Int,1},
 )::Array{String,1}
 
     [get_prop(graph, i, :name) for i in cluster]
