@@ -1,5 +1,7 @@
 module GrapetreeCluster
 
+import Pkg.project
+
 using ArgParse
 using CSV
 using DataFrames
@@ -11,6 +13,9 @@ using PhyloNetworks
 function arguments(cli)
 
     s = ArgParseSettings()
+
+    s.version = "gtclust $(project().version)"
+    s.add_version = true
 
     @add_arg_table! s begin
         "--input", "-i"

@@ -1,7 +1,7 @@
 name = "GrapetreeCluster"
 uuid = "44344180-73b9-4f8a-9433-782f47a5de10"
 authors = ["Dillon Barker <dor.barker@gmail.com>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
